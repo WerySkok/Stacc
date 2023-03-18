@@ -1,6 +1,8 @@
 package net.devtech.stacc.mixin;
 
 import net.devtech.stacc.ItemCountRenderHandler;
+
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -20,23 +22,22 @@ import net.fabricmc.api.Environment;
 @Mixin (ItemRenderer.class)
 public class RenderItemCountFixin {
 
-	@Redirect (method = "renderGuiItemOverlay(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/item/ItemStack;IILjava/lang/String;)V",
+	@Redirect (method = "renderGuiItemOverlay(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/item/ItemStack;IILjava/lang/String;)V",
 			at = @At (value = "INVOKE", target = "Ljava/lang/String;valueOf(I)Ljava/lang/String;"))
 	private String render(int i) {
 		return ItemCountRenderHandler.getInstance().toConsiseString(i);
 	}
 
-	@Redirect (method = "renderGuiItemOverlay(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/item/ItemStack;IILjava/lang/String;)V",
+	@Redirect (method = "renderGuiItemOverlay(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/item/ItemStack;IILjava/lang/String;)V",
 			at = @At (value = "INVOKE", target = "Lnet/minecraft/client/font/TextRenderer;getWidth(Ljava/lang/String;)I"))
 	private int width(TextRenderer renderer, String text) {
 		return (int) (renderer.getWidth(text) * ItemCountRenderHandler.getInstance().scale(text));
 	}
 
-	@Inject (method = "renderGuiItemOverlay(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/item/ItemStack;IILjava/lang/String;)V",
+	@Inject (method = "renderGuiItemOverlay(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/item/ItemStack;IILjava/lang/String;)V",
 			at = @At (value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V", shift = At.Shift.AFTER),
 			locals = LocalCapture.CAPTURE_FAILHARD)
-	private void rescaleText(TextRenderer fontRenderer, ItemStack stack, int x, int y, String amountText, CallbackInfo ci, MatrixStack matrixStack,
-	                         String string) {
+	private void rescaleText(MatrixStack matrixStack, TextRenderer textRenderer, ItemStack stack, int x, int y, @Nullable String countLabel, CallbackInfo ci, String string) {
 		float f = ItemCountRenderHandler.getInstance().scale(string);
 		if (f != 1f) {
 			matrixStack.translate(x * (1 - f), y * (1 - f) + (1 - f) * 16, 0);
