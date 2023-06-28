@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "stacc",
-  "version": "${version}",
+  "version": "1.5.2+boneless2ahhhh",
   "name": "Stacc",
   "description": "An library mod that allows developers and modpack authors to make items with >64 stack size",
   "license": "CC0-1.0",
